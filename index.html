@@ -5,465 +5,177 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FX Brief">
+  <meta name="apple-mobile-web-app-title" content="Market Brief">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
-  <title>為替デイリーブリーフ</title>
+  <title>マーケットデイリーブリーフ</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body {
-      background: #0a0a0f;
-      color: #e8e8f0;
-      font-family: 'Courier New', monospace;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    }
-    .grid-bg {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(0,255,180,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,180,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-    .container { max-width: 600px; margin: 0 auto; padding: 24px 16px 40px; position: relative; z-index: 1; }
-
-    /* Header */
-    .badge { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #00ffb4; box-shadow: 0 0 12px #00ffb4; animation: pulse 2s infinite; }
-    .badge-text { font-size: 11px; color: #00ffb4; letter-spacing: 3px; }
-    h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0 0 4px;
-      background: linear-gradient(135deg, #fff 60%, #00ffb4);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .date-text { font-size: 11px; color: #444; }
-    .copyright-header { font-size: 12px; color: #ffffff; margin-top: 6px; letter-spacing: 3px; font-weight: 600; }
-
-    /* Tabs */
-    .tabs { display: flex; gap: 6px; margin: 20px 0; }
-    .tab-btn {
-      flex: 1; padding: 10px 4px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 3px; color: #555;
-      font-family: 'Courier New', monospace; font-size: 11px;
-      cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: rgba(0,255,180,0.12);
-      border-color: rgba(0,255,180,0.4);
-      color: #00ffb4;
-    }
-
-    /* Fetch button */
-    .fetch-btn {
-      width: 100%; padding: 16px;
-      background: linear-gradient(135deg, #00ffb4, #00cc90);
-      border: none; border-radius: 4px;
-      color: #000; font-family: 'Courier New', monospace;
-      font-size: 13px; font-weight: 700; letter-spacing: 2px;
-      cursor: pointer; margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(0,255,180,0.3);
-      transition: all 0.3s;
-    }
-    .fetch-btn:disabled { background: #111; color: #444; box-shadow: none; cursor: not-allowed; }
-
-    /* Summary card */
-    .summary-card {
-      padding: 20px; background: rgba(0,255,180,0.05);
-      border: 1px solid rgba(0,255,180,0.2);
-      border-radius: 4px; margin-bottom: 12px;
-    }
-    .card-label { font-size: 11px; color: #00ffb4; letter-spacing: 2px; margin-bottom: 6px; }
-    .summary-title { font-size: 19px; font-weight: 700; margin-bottom: 12px; }
-    .tags { display: flex; gap: 10px; flex-wrap: wrap; }
-    .tag-dir {
-      padding: 4px 12px;
-      background: rgba(0,255,180,0.08);
-      border: 1px solid rgba(0,255,180,0.25);
-      border-radius: 2px; font-size: 13px; font-weight: 700;
-    }
-    .tag-conf {
-      padding: 4px 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 2px; font-size: 12px; color: #666;
-    }
-
-    /* Pair tabs */
-    .pair-tabs { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px; }
-    .pair-btn {
-      padding: 6px 10px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 2px; color: #555;
-      font-family: 'Courier New', monospace; font-size: 11px;
-      cursor: pointer; white-space: nowrap; transition: all 0.2s;
-    }
-    .pair-btn.active { background: rgba(0,255,180,0.15); border-color: rgba(0,255,180,0.5); color: #00ffb4; }
-
-    /* Rate card */
-    .rate-card {
-      padding: 16px; background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 4px; margin-bottom: 12px;
-    }
-    .rate-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .rate-label { font-size: 11px; color: #444; margin-bottom: 2px; }
-    .rate-value { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
-    .rate-ask { font-size: 14px; color: #444; }
-    .rate-change { font-size: 16px; font-weight: 700; }
-    .rate-footer { display: flex; justify-content: space-between; font-size: 11px; color: #444; }
-
-    /* News items */
-    .section-label { font-size: 11px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
-    .news-item {
-      padding: 14px; background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 0 4px 4px 0; margin-bottom: 8px;
-    }
-    .news-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: flex-start; gap: 8px; }
-    .news-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .news-cat { font-size: 11px; }
-    .impact-badge { font-size: 10px; padding: 2px 6px; border-radius: 2px; }
-    .news-dir { font-size: 11px; white-space: nowrap; }
-    .news-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-    .news-detail { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 6px; }
-    .news-source { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #00ffb4; text-decoration: none; opacity: 0.7; }
-
-    /* Watch */
-    .watch-card {
-      padding: 14px; background: rgba(255,170,0,0.05);
-      border: 1px solid rgba(255,170,0,0.2);
-      border-radius: 4px; margin-bottom: 24px;
-    }
-    .watch-label { font-size: 11px; color: #ffaa00; letter-spacing: 2px; margin-bottom: 6px; }
-    .watch-text { font-size: 13px; line-height: 1.7; }
-
-    /* Sites */
-    .site-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px; background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-left: 3px solid #00ffb4;
-      border-radius: 0 4px 4px 0; margin-bottom: 8px;
-      text-decoration: none; cursor: pointer; transition: background 0.2s;
-    }
-    .site-item:hover, .site-item:active { background: rgba(0,255,180,0.05); }
-    .site-name { font-size: 14px; font-weight: 700; color: #e8e8f0; margin-bottom: 3px; }
-    .site-desc { font-size: 12px; color: #555; }
-    .site-arrow { font-size: 16px; color: #00ffb4; }
-
-    /* Back issues */
-    .back-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 14px; background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 4px; margin-bottom: 8px; cursor: pointer;
-      transition: background 0.2s;
-    }
-    .back-item:hover, .back-item:active { background: rgba(0,255,180,0.04); }
-    .back-date { font-size: 11px; color: #444; margin-bottom: 3px; }
-    .back-summary { font-size: 14px; font-weight: 700; }
-    .back-dir { font-size: 13px; font-weight: 700; }
-    .back-rate { font-size: 11px; color: #333; margin-top: 2px; }
-    .back-btn {
-      background: none; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 3px; color: #555;
-      font-family: 'Courier New', monospace; font-size: 11px;
-      cursor: pointer; padding: 6px 12px; margin-bottom: 16px;
-    }
-
-    /* Footer */
-    .footer-note { text-align: center; font-size: 10px; color: #1e1e2e; padding-top: 8px; }
-    .footer-copy { text-align: center; font-size: 12px; color: #ffffff; padding-top: 6px; letter-spacing: 3px; font-weight: 600; }
-
-    /* Empty state */
-    .empty { text-align: center; padding: 60px 0; color: #2a2a3a; font-size: 13px; letter-spacing: 1px; }
-
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    /* iOS safe area */
-    @supports (padding-top: env(safe-area-inset-top)) {
-      .container { padding-top: max(24px, env(safe-area-inset-top)); }
-    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{background:#0a0a0f;color:#e8e8f0;font-family:'Courier New',monospace;min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+    .grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,255,180,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,180,0.03) 1px,transparent 1px);background-size:40px 40px}
+    .wrap{max-width:600px;margin:0 auto;padding:20px 14px 48px;position:relative;z-index:1}
+    h1{font-size:22px;font-weight:900;letter-spacing:-1px;margin:0 0 2px;background:linear-gradient(135deg,#fff 60%,#00ffb4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .badge{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+    .dot{width:7px;height:7px;border-radius:50%;background:#00ffb4;box-shadow:0 0 10px #00ffb4;animation:pulse 2s infinite}
+    .badge-txt{font-size:10px;color:#00ffb4;letter-spacing:3px}
+    .date-txt{font-size:10px;color:#444}
+    .copy-hdr{font-size:11px;color:#fff;margin-top:4px;letter-spacing:3px;font-weight:600}
+    .tabs{display:flex;gap:5px;margin:14px 0}
+    .tab{flex:1;padding:9px 2px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:3px;color:#555;font-family:'Courier New',monospace;font-size:10px;cursor:pointer;letter-spacing:.5px;transition:all .2s}
+    .tab.on{background:rgba(0,255,180,0.12);border-color:rgba(0,255,180,0.4);color:#00ffb4}
+    .fetch-btn{width:100%;padding:13px;background:linear-gradient(135deg,#00ffb4,#00cc90);border:none;border-radius:4px;color:#000;font-family:'Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-bottom:14px;box-shadow:0 0 16px rgba(0,255,180,0.25)}
+    .fetch-btn:disabled{background:#111;color:#444;box-shadow:none;cursor:not-allowed}
+    .summary-card{padding:16px;background:rgba(0,255,180,0.05);border:1px solid rgba(0,255,180,0.2);border-radius:4px;margin-bottom:10px}
+    .card-lbl{font-size:10px;color:#00ffb4;letter-spacing:2px;margin-bottom:6px}
+    .card-title{font-size:17px;font-weight:700;margin-bottom:10px}
+    .tags{display:flex;gap:8px;flex-wrap:wrap}
+    .tag-dir{padding:3px 10px;background:rgba(0,255,180,0.08);border:1px solid rgba(0,255,180,0.2);border-radius:2px;font-size:12px;font-weight:700}
+    .tag-conf{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:2px;font-size:11px;color:#666}
+    .plain{padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:4px;margin-bottom:8px}
+    .sec-lbl{font-size:10px;color:#444;letter-spacing:2px;margin-bottom:8px}
+    .pair-tabs{display:flex;gap:5px;margin-bottom:6px;overflow-x:auto}
+    .pair-btn{padding:5px 7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:2px;color:#555;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;white-space:nowrap}
+    .pair-btn.on{background:rgba(0,255,180,0.15);border-color:rgba(0,255,180,0.5);color:#00ffb4}
+    .rate-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .rate-lbl{font-size:9px;color:#444;margin-bottom:2px}
+    .rate-val{font-size:20px;font-weight:900}
+    .rate-ask{font-size:12px;color:#444}
+    .rate-chg{font-size:14px;font-weight:700}
+    .rate-foot{display:flex;justify-content:space-between;font-size:10px;color:#444}
+    .idx-cards{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+    .idx-card{flex:1;min-width:80px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:4px;text-align:center}
+    .idx-name{font-size:9px;color:#555;margin-bottom:2px}
+    .idx-val{font-size:14px;font-weight:900;margin-bottom:2px}
+    .idx-pct{font-size:10px;font-weight:700}
+    .news-item{padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:0 4px 4px 0;margin-bottom:6px}
+    .news-hdr{display:flex;justify-content:space-between;margin-bottom:4px;align-items:flex-start;gap:6px}
+    .news-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+    .news-cat{font-size:10px}
+    .imp-badge{font-size:9px;padding:1px 5px;border-radius:2px}
+    .news-dir{font-size:10px;white-space:nowrap}
+    .news-title{font-size:12px;font-weight:700;margin-bottom:3px}
+    .news-detail{font-size:11px;color:#555;line-height:1.5;margin-bottom:4px}
+    .news-src{font-size:9px;color:#00ffb4;opacity:.7}
+    .watch-card{padding:12px;background:rgba(255,170,0,0.05);border:1px solid rgba(255,170,0,0.2);border-radius:4px;margin-bottom:14px}
+    .watch-lbl{font-size:10px;color:#ffaa00;letter-spacing:2px;margin-bottom:4px}
+    .watch-txt{font-size:12px;line-height:1.6}
+    .stock-row{padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .stock-row:last-child{border-bottom:none}
+    .stock-main{display:flex;justify-content:space-between;align-items:center}
+    .stock-name{font-size:12px;font-weight:700}
+    .stock-code{font-size:9px;color:#444}
+    .stock-val{font-size:12px;font-weight:700;text-align:right}
+    .stock-pct{font-size:10px;text-align:right}
+    .stock-note{font-size:10px;color:#555;margin-top:3px;line-height:1.4}
+    .fund-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .fund-row:last-child{border-bottom:none}
+    .fund-name{font-size:11px;font-weight:700;line-height:1.4}
+    .fund-nav{font-size:9px;color:#444;margin-top:1px}
+    .fund-gain{font-size:11px;font-weight:700;white-space:nowrap}
+    .total-card{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,255,180,0.06);border:1px solid rgba(0,255,180,0.2);border-radius:4px;margin-bottom:10px}
+    .footer-note{text-align:center;font-size:10px;color:#1a1a2e;padding-top:8px}
+    .footer-copy{text-align:center;font-size:11px;color:#fff;padding-top:4px;letter-spacing:3px;font-weight:600}
+    .empty{text-align:center;padding:50px 0;color:#2a2a3a;font-size:12px}
+    .panel{display:none}.panel.on{display:block}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    @supports(padding-top:env(safe-area-inset-top)){.wrap{padding-top:max(20px,env(safe-area-inset-top))}}
   </style>
 </head>
 <body>
-<div class="grid-bg"></div>
-<div class="container">
-
-  <!-- Header -->
-  <div style="margin-bottom:20px">
-    <div class="badge">
-      <div class="dot"></div>
-      <span class="badge-text">FX MARKET INTELLIGENCE</span>
-    </div>
-    <h1>為替デイリーブリーフ</h1>
-    <div class="date-text" id="header-date"></div>
-    <div class="copyright-header">© KATANO HIKARU</div>
+<div class="grid"></div>
+<div class="wrap">
+  <div style="margin-bottom:14px">
+    <div class="badge"><div class="dot"></div><span class="badge-txt">MARKET INTELLIGENCE</span></div>
+    <h1>マーケットデイリーブリーフ</h1>
+    <div class="date-txt">2026年4月4日（土）</div>
+    <div class="copy-hdr">© KATANO HIKARU</div>
   </div>
-
-  <!-- Tabs -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('today')">📰 TODAY</button>
-    <button class="tab-btn" onclick="switchTab('sites')">🔗 ニュースサイト</button>
-    <button class="tab-btn" onclick="switchTab('back')">📁 バックナンバー</button>
+    <button class="tab on" onclick="switchTab('fx',this)">📰 為替</button>
+    <button class="tab"    onclick="switchTab('jp',this)">🇯🇵 国内株</button>
+    <button class="tab"    onclick="switchTab('us',this)">🇺🇸 米国株</button>
+    <button class="tab"    onclick="switchTab('funds',this)">📊 投信</button>
   </div>
-
-  <!-- TODAY TAB -->
-  <div id="tab-today">
-    <button class="fetch-btn" id="fetch-btn" onclick="fetchNews()">▶ 今日のニュースを取得</button>
-    <div id="today-content" style="display:none"></div>
-    <div class="empty" id="today-empty">ボタンを押して今日の市場情報を取得</div>
+  <div id="panel-fx" class="panel on">
+    <button class="fetch-btn" id="btn-fx" onclick="showPanel('fx')">▶ 今日の為替情報を取得</button>
+    <div id="content-fx" style="display:none"></div>
+    <div id="empty-fx" class="empty">ボタンを押して為替情報を取得</div>
   </div>
-
-  <!-- SITES TAB -->
-  <div id="tab-sites" style="display:none">
-    <div class="section-label">RECOMMENDED SOURCES</div>
-    <div id="sites-list"></div>
+  <div id="panel-jp" class="panel">
+    <button class="fetch-btn" id="btn-jp" onclick="showPanel('jp')">▶ 今日の国内株情報を取得</button>
+    <div id="content-jp" style="display:none"></div>
+    <div id="empty-jp" class="empty">ボタンを押して国内株情報を取得</div>
   </div>
-
-  <!-- BACK TAB -->
-  <div id="tab-back" style="display:none">
-    <div id="back-list"></div>
-    <div id="back-detail" style="display:none"></div>
+  <div id="panel-us" class="panel">
+    <button class="fetch-btn" id="btn-us" onclick="showPanel('us')">▶ 今日の米国株情報を取得</button>
+    <div id="content-us" style="display:none"></div>
+    <div id="empty-us" class="empty">ボタンを押して米国株情報を取得</div>
   </div>
-
+  <div id="panel-funds" class="panel">
+    <button class="fetch-btn" id="btn-funds" onclick="showPanel('funds')">▶ 今日の投資信託情報を取得</button>
+    <div id="content-funds" style="display:none"></div>
+    <div id="empty-funds" class="empty">ボタンを押して投資信託情報を取得</div>
+  </div>
   <div class="footer-note">※投資判断はご自身の責任で行ってください</div>
   <div class="footer-copy">© KATANO HIKARU</div>
 </div>
-
 <script>
-const CATEGORIES = {
-  central_bank: { label: "中央銀行", icon: "🏦" },
-  economic:     { label: "経済指標", icon: "📊" },
-  geopolitical: { label: "地政学",  icon: "🌐" },
-  risk:         { label: "リスク",  icon: "⚡" },
-};
-const PAIRS = ["USD/JPY","EUR/JPY","GBP/JPY","AUD/JPY"];
-let activePair = "USD/JPY";
-let currentData = null;
+const FX={summary:"中東リスクと原油高で円安継続",direction:"円安",confidence:"中",rates:{"USD/JPY":{bid:"159.43",ask:"159.71",change:"-0.06",range:"159.43〜159.73",bias:"ドル高"},"EUR/JPY":{bid:"183.94",ask:"183.95",change:"+0.27",range:"183.80〜184.10",bias:"横ばい"},"GBP/JPY":{bid:"206.50",ask:"206.80",change:"+0.10",range:"206.20〜207.00",bias:"横ばい"},"AUD/JPY":{bid:"100.20",ask:"100.50",change:"-0.15",range:"100.00〜100.80",bias:"豪ドル安"}},news:[{cat:"🌐 地政学",title:"イランが米軍戦闘機を撃墜、中東リスク再燃",impact:"高",dir:"円安要因",detail:"中東情勢の緊迫化で原油価格が急騰。エネルギー輸入国の日本には円売り圧力。",src:"Reuters"},{cat:"⚡ リスク",title:"原油価格が急騰、インフレ再燃を警戒",impact:"高",dir:"円安要因",detail:"WTI原油が1バレル111ドル台に急騰。日本の輸入コスト増で貿易赤字拡大懸念。",src:"Bloomberg"},{cat:"📊 経済",title:"グッドフライデーで欧米市場は休場",impact:"中",dir:"中立",detail:"流動性が低下し、薄商いの中で値動きが大きくなる可能性に注意。",src:"Investing.com"},{cat:"📊 経済",title:"米雇用統計、市場予想並みの結果",impact:"中",dir:"円安要因",detail:"FRBの利下げ観測が後退。ドル買い継続の材料に。",src:"WSJ"},{cat:"🏦 中央銀行",title:"日米金利差4.0%、ドル優位が続く",impact:"高",dir:"円安要因",detail:"FRB 3.75% vs 日銀 0.75%。金利差が構造的な円安圧力となっている。",src:"CNBC"},{cat:"🏦 中央銀行",title:"日銀、追加利上げ時期を慎重に見極め",impact:"中",dir:"円高要因",detail:"植田総裁は賃金・物価の持続的上昇を確認してから判断する姿勢を維持。",src:"Bloomberg"}],watch:"欧米休場で薄商い。中東情勢次第で160円試す展開も。"};
+const JP={summary:"短期筋の先物買いが主導し反発",direction:"上昇",confidence:"中",indices:[{name:"日経平均",value:"53,123",pct:"+1.26%",up:true},{name:"TOPIX",value:"3,645",pct:"+0.93%",up:true}],news:[{cat:"📰 材料",title:"さくらインターネット、ストップ高",impact:"高",dir:"ポジティブ",detail:"Microsoft日本投資1.6兆円発表を受け、協業先のさくらインターネットが+20.27%でストップ高。AI・クラウドインフラ関連株が物色される。",src:"日経"},{cat:"🌐 地政学",title:"中東情勢の緊迫化が上値を抑制",impact:"高",dir:"ネガティブ",detail:"イラン情勢悪化で原油高止まり。エネルギーコスト上昇が製造業・輸送関連の業績懸念につながる。",src:"日経"},{cat:"📊 経済",title:"短期筋の先物買いが主導、実需は限定的",impact:"中",dir:"中立",detail:"反発は投機的な先物買いが主体。5万3500円（75日線）が上値抵抗。",src:"NQN"},{cat:"🏦 日銀",title:"春闘の賃上げ継続で日銀正常化期待",impact:"中",dir:"ポジティブ",detail:"2026年春闘で賃上げ継続が確認され、日銀の追加利上げ観測が高まる。銀行・金融株への追い風。",src:"日経"},{cat:"📈 需給",title:"野村、日経平均年末60,000円予想を維持",impact:"低",dir:"ポジティブ",detail:"野村證券が2026年末の日経平均60,000円予想を維持。企業業績2ケタ増益と自社株買いが支え。",src:"野村"}],watch:"5万3500円（75日線）が当面の上値抵抗。来週の米国市場動向に注目。",stocks:[{name:"ソシオネクスト",code:"6526",value:"1,863",pct:"+9.62%",up:true,note:"AI半導体設計。データセンター需要拡大で注目"},{name:"PKSHA",code:"3993",value:"2,835",pct:"+2.16%",up:true,note:"AI・機械学習ソフト。企業のAI導入拡大で恩恵"},{name:"デンソー",code:"6902",value:"1,923",pct:"+1.21%",up:true,note:"トヨタ系自動車部品。EV・自動運転で成長期待"},{name:"LaboroAI",code:"5586",value:"813",pct:"+1.62%",up:true,note:"企業向けAIソリューション。生成AI普及で拡大"},{name:"東映アニメ",code:"4816",value:"2,660",pct:"+1.33%",up:true,note:"IPコンテンツ。海外展開・インバウンド需要"},{name:"ソフトバンク",code:"9434",value:"218.8",pct:"+1.30%",up:true,note:"通信最大手。AI・5G展開で安定成長"},{name:"日産自",code:"7201",value:"355",pct:"+0.94%",up:true,note:"自動車大手。EV戦略の進捗に注目"},{name:"日本製鉄",code:"5401",value:"585",pct:"-0.68%",up:false,note:"鉄鋼大手。米USスチール統合効果に期待"},{name:"ＮＴＴ",code:"9432",value:"157.8",pct:"-0.75%",up:false,note:"通信インフラ。IOWN構想で長期成長狙い"},{name:"楽天グループ",code:"4755",value:"746",pct:"-26.11%",up:false,note:"EC・モバイル。財務改善が課題"},{name:"メタプラネット",code:"3350",value:"298",pct:"-38.68%",up:false,note:"ビットコイン戦略企業。仮想通貨市場と連動"},{name:"任天堂",code:"7974",value:"8,736",pct:"-7.40%",up:false,note:"ゲーム大手。Switch後継機の発売に期待"},{name:"ispace",code:"9348",value:"424",pct:"-24.82%",up:false,note:"宇宙ベンチャー。月探査ミッションへの期待"},{name:"QPSHD",code:"464A",value:"2,297",pct:"-7.00%",up:false,note:"食品・ヘルスケア。ブランド力が強み"},{name:"オリオンビール",code:"409A",value:"1,293",pct:"-26.11%",up:false,note:"沖縄地盤のビール。観光需要回復に期待"},{name:"みのや",code:"386A",value:"1,371",pct:"-33.12%",up:false,note:"中小型株。事業成長に注目"},{name:"ソニーFG",code:"8729",value:"147.8",pct:"-13.57%",up:false,note:"損保・生保。金利上昇で運用益改善期待"},{name:"レカム",code:"3323",value:"92",pct:"-17.12%",up:false,note:"中小企業向けIT。DX需要の開拓が課題"},{name:"キタハマキャピタル",code:"2134",value:"31",pct:"-55.71%",up:false,note:"金融系。業績回復を注視"},{name:"モンスターラボ",code:"5255",value:"107",pct:"-58.20%",up:false,note:"DXコンサル。収益改善が急務"}]};
+const US={summary:"関税懸念でハイテク株が急落",direction:"下落",confidence:"高",indices:[{name:"NYダウ",value:"46,504",pct:"-0.13%",up:false},{name:"S&P 500",value:"5,585",pct:"-1.57%",up:false},{name:"NASDAQ100",value:"19,148",pct:"-2.32%",up:false}],news:[{cat:"🏛 政策",title:"トランプ相互関税、日本に24%課税発表",impact:"高",dir:"ネガティブ",detail:"トランプ大統領が全輸入品に最低10%、日本には24%の相互関税を発表。ハイテク・自動車関連株に売り。",src:"Bloomberg"},{cat:"⚡ ハイテク",title:"Apple、時間外で-4.90%急落",impact:"高",dir:"ネガティブ",detail:"中国・インドでの製造コスト上昇懸念と関税の影響を受け、時間外でAppleが約5%急落。",src:"CNBC"},{cat:"⚡ ハイテク",title:"Nvidia、AI規制懸念で軟調継続",impact:"高",dir:"ネガティブ",detail:"中国向け販売規制強化の可能性が浮上。AI半導体の需要見通しに不透明感が漂う。",src:"Reuters"},{cat:"📊 経済",title:"グッドフライデーで市場は休場",impact:"中",dir:"中立",detail:"欧米主要市場が休場。来週月曜日の市場再開時に関税発表への反応が本格化する見込み。",src:"WSJ"},{cat:"📊 経済",title:"FRB、利下げ時期の見極めが長期化",impact:"中",dir:"ネガティブ",detail:"雇用統計は堅調で利下げ期待後退。関税起因のインフレ再燃でFRBの動けない状況が続く。",src:"WSJ"}],watch:"来週月曜日の市場再開で関税ショックが本格化する可能性。Appleの続報に注目。",stocks:[{name:"Tesla",code:"TSLA",value:"$360.59",pct:"-5.55%",up:false,note:"EV最大手。関税で部品コスト上昇懸念、中国市場競争も激化"},{name:"Amazon",code:"AMZN",value:"$209.77",pct:"+0.63%",up:true,note:"EC・クラウド。AWS好調。関税影響は限定的との見方"},{name:"Nvidia",code:"NVDA",value:"$177.39",pct:"-0.49%",up:false,note:"AI半導体。データセンター需要は堅調も中国規制リスク残る"}]};
+const FUNDS={totalValue:"930,355円",totalGain:"+59,022円",summary:"S&P500・オルカン好調、FANG+は調整",direction:"上昇",confidence:"中",news:[{cat:"📈 米国株",title:"S&P500インデックスファンド、年初来好調",impact:"高",dir:"ポジティブ",detail:"eMAXIS Slim S&P500は基準価額38,546円。円安効果もあり取得単価比+5.6%と好調。",src:"SBI証券"},{cat:"🌐 全世界",title:"オルカン、分散効果で安定推移",impact:"中",dir:"ポジティブ",detail:"全世界株式（オルカン）は基準価額33,265円。米国以外の分散効果が機能。",src:"SBI証券"},{cat:"⚡ ハイテク",title:"FANG+インデックス、関税懸念で下落",impact:"高",dir:"ネガティブ",detail:"Apple・Nvidia・Metaなどハイテク10銘柄集中投資のFANG+が評価損。関税発表で下落加速。",src:"SBI証券"},{cat:"🏦 高配当",title:"SBI日本高配当株ファンド、+25,005円と好調",impact:"中",dir:"ポジティブ",detail:"日本の高配当株に投資。金利上昇・賃金上昇局面で国内バリュー株への資金流入が続き好調。",src:"SBI証券"},{cat:"📊 債券",title:"先進国債券ファンド、金利上昇で基準価額に影響",impact:"中",dir:"中立",detail:"米国・欧州の金利高止まりが債券価格を圧迫。ただし円安効果で円ベースではプラスを維持。",src:"SBI証券"}],watch:"FANG+は関税・AI規制リスクで下落余地あり。S&P500・オルカンは長期積立継続が基本戦略。",list:[{name:"eMAXIS Slim 米国株式（S&P500）",nav:"38,546円",gain:"+19,337円",up:true},{name:"eMAXIS Slim 全世界株式（オルカン）",nav:"33,265円",gain:"+401円",up:true},{name:"eMAXIS Slim 先進国債券インデックス",nav:"15,474円",gain:"+1,331円",up:true},{name:"eMAXIS Slim 先進国リートインデックス",nav:"17,401円",gain:"+219円",up:true},{name:"eMAXIS Slim 国内リートインデックス",nav:"10,959円",gain:"-266円",up:false},{name:"eMAXIS NASDAQ100インデックス",nav:"28,744円",gain:"-258円",up:false},{name:"iFreeNEXT FANG+インデックス",nav:"76,109円",gain:"-7,571円",up:false},{name:"SBI日本高配当株式ファンド",nav:"16,104円",gain:"+25,005円",up:true},{name:"SBI・V・米国高配当株式F",nav:"14,122円",gain:"+679円",up:true},{name:"SBI・S・米国高配当株式F",nav:"11,494円",gain:"+1,479円",up:true},{name:"WCM 世界成長株厳選ファンド",nav:"21,081円",gain:"+52円",up:true}]};
 
-const NEWS_SITES = [
-  { name: "Bloomberg JP", url: "https://www.bloomberg.co.jp/markets/currencies", desc: "米国発マーケット速報" },
-  { name: "Reuters",      url: "https://jp.reuters.com/markets/currencies/",     desc: "グローバルニュース" },
-  { name: "WSJ Markets",  url: "https://www.wsj.com/market-data/currencies",     desc: "ウォール街情報" },
-  { name: "CNBC FX",      url: "https://www.cnbc.com/currencies/",               desc: "米国TV系速報" },
-  { name: "Investing.com",url: "https://jp.investing.com/currencies/",           desc: "レート・分析" },
-];
+const CU="#4ecdc4",CD="#ff6b6b";
+function upc(b){return b?CU:CD}
+function ic(v){return v==="高"?"#ff4444":v==="中"?"#ffaa00":"#44bb88"}
+function dc(d){if(d.includes("ポジティブ")||d.includes("円安要因")||d.includes("上昇"))return CU;if(d.includes("ネガティブ")||d.includes("円高要因")||d.includes("下落"))return CD;return"#888"}
+function da(d){if(d.includes("ポジティブ")||d.includes("円安要因")||d.includes("上昇"))return"↑";if(d.includes("ネガティブ")||d.includes("円高要因")||d.includes("下落"))return"↓";return"→"}
+function sc(dir){return dir==="上昇"||dir==="円安"?CU:dir==="下落"||dir==="円高"?CD:"#888"}
+function sa(dir){return dir==="上昇"||dir==="円安"?"↑":dir==="下落"||dir==="円高"?"↓":"→"}
 
-const TODAY_DATA = {
-  date: "2026年4月4日（土）", dateKey: "2026-04-04", updatedAt: "午前9時時点",
-  summary: "中東リスクと原油高で円安継続",
-  direction: "円安", confidence: "中",
-  rates: {
-    "USD/JPY": { bid:"159.43", ask:"159.71", change:"-0.06", range:"159.43〜159.73", bias:"ドル高" },
-    "EUR/JPY": { bid:"183.94", ask:"183.95", change:"+0.27", range:"183.80〜184.10", bias:"横ばい" },
-    "GBP/JPY": { bid:"206.50", ask:"206.80", change:"+0.10", range:"206.20〜207.00", bias:"横ばい" },
-    "AUD/JPY": { bid:"100.20", ask:"100.50", change:"-0.15", range:"100.00〜100.80", bias:"豪ドル安" },
-  },
-  news: [
-    { category:"geopolitical", title:"イランが米軍戦闘機を撃墜、中東リスク再燃", impact:"高", direction:"円安要因", detail:"中東情勢の緊迫化で原油価格が急騰。エネルギー輸入国の日本には円売り圧力が強まっている。", source:{ name:"Reuters", url:"https://jp.reuters.com/markets/currencies/" } },
-    { category:"risk",         title:"原油価格が急騰、インフレ再燃を警戒",       impact:"高", direction:"円安要因", detail:"有事リスクの高まりと供給不安で原油が大幅上昇。日本の貿易赤字拡大懸念が円売りを誘発。",     source:{ name:"Bloomberg JP", url:"https://www.bloomberg.co.jp/markets/currencies" } },
-    { category:"economic",     title:"グッドフライデーで欧米市場は休場",         impact:"中", direction:"中立",     detail:"欧米勢が不在のため流動性が低下。薄商いの中で値動きが大きくなる可能性に注意。",             source:{ name:"Investing.com", url:"https://jp.investing.com/currencies/" } },
-    { category:"economic",     title:"米雇用統計、市場予想並みの結果",           impact:"中", direction:"円安要因", detail:"非農業部門雇用者数が概ね予想通りで、FRBの利下げ観測は後退。ドル買い継続の材料に。",         source:{ name:"WSJ Markets", url:"https://www.wsj.com/market-data/currencies" } },
-    { category:"central_bank", title:"日米金利差4.0%、ドル優位が続く",          impact:"高", direction:"円安要因", detail:"FRB政策金利3.75% vs 日銀0.75%。金利差4%が根本的なドル円の上昇圧力となっている。",         source:{ name:"CNBC FX", url:"https://www.cnbc.com/currencies/" } },
-    { category:"central_bank", title:"日銀、追加利上げ時期を慎重に見極め",      impact:"中", direction:"円高要因", detail:"植田総裁は賃金・物価の持続的上昇を確認してから判断する姿勢を維持。円高抑制材料。",         source:{ name:"Bloomberg JP", url:"https://www.bloomberg.co.jp/markets/currencies" } },
-  ],
-  watch: "欧米休場で薄商い、中東情勢の急変に要注意",
-};
+function rSummary(d){return`<div class="summary-card"><div class="card-lbl">TODAY'S BRIEF</div><div class="card-title">${d.summary}</div><div class="tags"><span class="tag-dir" style="color:${sc(d.direction)}">${sa(d.direction)} ${d.direction}</span><span class="tag-conf">確度: ${d.confidence}</span></div></div>`}
+function rNews(news){return news.map(n=>{const imp=ic(n.impact);return`<div class="news-item" style="border-left:3px solid ${imp}"><div class="news-hdr"><div class="news-meta"><span class="news-cat">${n.cat}</span><span class="imp-badge" style="background:${imp}22;color:${imp};border:1px solid ${imp}44">影響${n.impact}</span></div><span class="news-dir" style="color:${dc(n.dir)}">${da(n.dir)} ${n.dir}</span></div><div class="news-title">${n.title}</div><div class="news-detail">${n.detail}</div><span class="news-src">🔗 ${n.src}</span></div>`}).join("")}
+function rWatch(w){return`<div class="watch-card"><div class="watch-lbl">⚠ TODAY'S WATCH</div><div class="watch-txt">${w}</div></div>`}
+function rIdx(idx){return`<div class="idx-cards">${idx.map(x=>`<div class="idx-card"><div class="idx-name">${x.name}</div><div class="idx-val">${x.value}</div><div class="idx-pct" style="color:${upc(x.up)}">${x.up?"▲":"▼"} ${x.pct}</div></div>`).join("")}</div>`}
+function rStocks(stocks){return`<div class="plain">${stocks.map(s=>`<div class="stock-row"><div class="stock-main"><div><div class="stock-name">${s.name}</div><div class="stock-code">${s.code}</div></div><div><div class="stock-val">${s.value}</div><div class="stock-pct" style="color:${upc(s.up)}">${s.up?"▲":"▼"} ${s.pct} <span style="font-size:8px;color:#444">前日比</span></div></div></div>${s.note?`<div class="stock-note">${s.note}</div>`:""}</div>`).join("")}</div>`}
 
-function generatePastData(daysAgo) {
-  const summaries = ["FRB利下げ観測でドル売り優勢","日銀利上げ期待で円が急伸","米雇用統計好結果でドル高","中東リスク後退でリスクオン","原油高で円売り圧力強まる","日米金利差縮小観測で円買い","トランプ関税懸念でリスクオフ"];
-  const dirs = ["円安","円高","方向感なし"];
-  const d = new Date("2026-04-04"); d.setDate(d.getDate() - daysAgo);
-  const base = 158 + (daysAgo % 3);
-  return {
-    dateKey: d.toISOString().slice(0,10),
-    date: d.toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"short"}),
-    summary: summaries[daysAgo % summaries.length],
-    direction: dirs[daysAgo % 3], confidence: ["高","中","低"][daysAgo % 3],
-    rates: {
-      "USD/JPY": { bid:`${base}.${20+daysAgo}`, ask:`${base}.${48+daysAgo}`, change: daysAgo%2===0?`+0.${daysAgo*10}`:`-0.${daysAgo*8}`, range:`${base}.00〜${base+1}.00`, bias: daysAgo%2===0?"ドル高":"ドル安" },
-      "EUR/JPY": { bid:`${183+daysAgo%2}.20`, ask:`${183+daysAgo%2}.50`, change:`+0.${daysAgo*5}`, range:"183.00〜184.00", bias:"横ばい" },
-      "GBP/JPY": { bid:`${206+daysAgo%2}.00`, ask:`${206+daysAgo%2}.30`, change:`-0.${daysAgo*3}`, range:"205.50〜207.00", bias:"横ばい" },
-      "AUD/JPY": { bid:`${100+daysAgo%2}.10`, ask:`${100+daysAgo%2}.40`, change:`+0.${daysAgo*6}`, range:"99.80〜101.00", bias:"豪ドル高" },
-    },
-    news: TODAY_DATA.news.slice(0,3),
-    watch: "過去データ — 参考情報としてご覧ください",
-  };
+let curPair="USD/JPY";
+function renderFX(){
+  const r=FX.rates[curPair];const cu=(r.change||"").startsWith("+");
+  const pb=Object.keys(FX.rates).map(p=>`<button class="pair-btn${p===curPair?" on":""}" onclick="selPair('${p}',this)">${p}</button>`).join("");
+  return rSummary(FX)+`<div class="pair-tabs">${pb}</div><div class="plain" id="rc"><div class="rate-row"><div><div class="rate-lbl">Bid / Ask</div><div class="rate-val">${r.bid} <span class="rate-ask">/ ${r.ask}</span></div></div><div style="text-align:right"><div class="rate-lbl">前日比</div><div class="rate-chg" style="color:${cu?CU:CD}">${cu?"▲":"▼"} ${r.change}</div></div></div><div class="rate-foot"><span>レンジ: ${r.range}</span><span>${r.bias}</span></div></div><div class="sec-lbl">MARKET MOVERS</div>`+rNews(FX.news)+rWatch(FX.watch)
 }
-const BACK_ISSUES = Array.from({length:6},(_,i)=>generatePastData(i+1));
-
-// Color helpers
-function dirColor(d="") {
-  if(d.includes("円安")||d.includes("ドル高")||d.includes("ユーロ高")||d.includes("ポンド高")||d.includes("豪ドル高")) return "#ff6b6b";
-  if(d.includes("円高")||d.includes("ドル安")||d.includes("ユーロ安")||d.includes("ポンド安")||d.includes("豪ドル安")) return "#4ecdc4";
-  return "#888";
-}
-function arrow(d="") {
-  if(d.includes("円安")||d.includes("ドル高")||d.includes("ユーロ高")||d.includes("ポンド高")||d.includes("豪ドル高")) return "↑";
-  if(d.includes("円高")||d.includes("ドル安")||d.includes("ユーロ安")||d.includes("ポンド安")||d.includes("豪ドル安")) return "↓";
-  return "→";
-}
-function impactColor(v) { return v==="高"?"#ff4444":v==="中"?"#ffaa00":"#44bb88"; }
-
-// Tab switching
-function switchTab(t) {
-  ["today","sites","back"].forEach(id => {
-    document.getElementById("tab-"+id).style.display = id===t?"block":"none";
-    document.querySelectorAll(".tab-btn")[["today","sites","back"].indexOf(id)].classList.toggle("active", id===t);
-  });
+function renderJP(){return rSummary(JP)+rIdx(JP.indices)+`<div class="sec-lbl">MARKET MOVERS</div>`+rNews(JP.news)+rWatch(JP.watch)+`<div class="sec-lbl">注目銘柄</div>`+rStocks(JP.stocks)}
+function renderUS(){return rSummary(US)+rIdx(US.indices)+`<div class="sec-lbl">MARKET MOVERS</div>`+rNews(US.news)+rWatch(US.watch)+`<div class="sec-lbl">注目銘柄</div>`+rStocks(US.stocks)}
+function renderFunds(){
+  const fl=FUNDS.list.map(f=>`<div class="fund-row"><div style="flex:1;padding-right:8px"><div class="fund-name">${f.name}</div><div class="fund-nav">基準価額 ${f.nav}</div></div><div class="fund-gain" style="color:${upc(f.up)}">${f.up?"▲":"▼"} ${f.gain}</div></div>`).join("");
+  return rSummary(FUNDS)+`<div class="total-card"><div><div style="font-size:9px;color:#555;margin-bottom:2px">合計評価額</div><div style="font-size:18px;font-weight:900">${FUNDS.totalValue}</div></div><div style="text-align:right"><div style="font-size:9px;color:#555;margin-bottom:2px">評価損益</div><div style="font-size:14px;font-weight:700;color:${CU}">▲ ${FUNDS.totalGain}</div></div></div><div class="sec-lbl">MARKET MOVERS</div>`+rNews(FUNDS.news)+rWatch(FUNDS.watch)+`<div class="sec-lbl">保有ファンド一覧</div><div style="padding:8px 10px;background:rgba(255,170,0,0.05);border:1px solid rgba(255,170,0,0.15);border-radius:4px;margin-bottom:8px;font-size:10px;color:#888">⚠ 基準価額は <span style="color:#ffaa00;font-weight:700">2026年4月3日（金）時点</span>。投資信託は翌営業日に確定のため、毎週月曜に更新します。</div><div class="plain">${fl}</div>`
 }
 
-// Init
-document.getElementById("header-date").textContent = TODAY_DATA.date + " " + TODAY_DATA.updatedAt;
-
-// Render sites
-const sitesList = document.getElementById("sites-list");
-NEWS_SITES.forEach(s => {
-  sitesList.innerHTML += `<a class="site-item" href="${s.url}" target="_blank">
-    <div><div class="site-name">${s.name}</div><div class="site-desc">${s.desc}</div></div>
-    <span class="site-arrow">→</span>
-  </a>`;
-});
-
-// Render back issues list
-function renderBackList() {
-  const bl = document.getElementById("back-list");
-  bl.innerHTML = `<div class="section-label">BACK ISSUES — 過去7日分</div>`;
-  BACK_ISSUES.forEach((issue,i) => {
-    const div = document.createElement("div");
-    div.className = "back-item";
-    div.innerHTML = `
-      <div><div class="back-date">${issue.date}</div><div class="back-summary">${issue.summary}</div></div>
-      <div style="text-align:right">
-        <div class="back-dir" style="color:${dirColor(issue.direction)}">${arrow(issue.direction)} ${issue.direction}</div>
-        <div class="back-rate">USD/JPY ${issue.rates["USD/JPY"].bid}</div>
-      </div>`;
-    div.onclick = () => showBackDetail(issue);
-    bl.appendChild(div);
-  });
+const renders={fx:renderFX,jp:renderJP,us:renderUS,funds:renderFunds};
+function showPanel(id){
+  const btn=document.getElementById("btn-"+id);
+  const content=document.getElementById("content-"+id);
+  const empty=document.getElementById("empty-"+id);
+  btn.disabled=true;btn.textContent="⟳ 取得中...";
+  setTimeout(()=>{content.innerHTML=renders[id]();content.style.display="block";empty.style.display="none";btn.disabled=false;btn.textContent="↺ 再表示"},700);
 }
-renderBackList();
-
-function showBackDetail(issue) {
-  document.getElementById("back-list").style.display = "none";
-  const bd = document.getElementById("back-detail");
-  bd.style.display = "block";
-  bd.innerHTML = `<button class="back-btn" onclick="closeBackDetail()">← 一覧に戻る</button>` + renderDataHTML(issue, issue.date);
+function switchTab(id,el){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));
+  document.getElementById("panel-"+id).classList.add("on");
+  el.classList.add("on");
 }
-function closeBackDetail() {
-  document.getElementById("back-detail").style.display = "none";
-  document.getElementById("back-list").style.display = "block";
+function selPair(pair,btn){
+  curPair=pair;
+  document.querySelectorAll(".pair-btn").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  const r=FX.rates[pair];const cu=(r.change||"").startsWith("+");
+  const rc=document.getElementById("rc");
+  if(rc)rc.innerHTML=`<div class="rate-row"><div><div class="rate-lbl">Bid / Ask</div><div class="rate-val">${r.bid} <span class="rate-ask">/ ${r.ask}</span></div></div><div style="text-align:right"><div class="rate-lbl">前日比</div><div class="rate-chg" style="color:${cu?CU:CD}">${cu?"▲":"▼"} ${r.change}</div></div></div><div class="rate-foot"><span>レンジ: ${r.range}</span><span>${r.bias}</span></div>`;
 }
-
-// Fetch news (today)
-function fetchNews() {
-  const btn = document.getElementById("fetch-btn");
-  btn.disabled = true; btn.textContent = "⟳ 分析中...";
-  setTimeout(() => {
-    currentData = TODAY_DATA;
-    document.getElementById("today-empty").style.display = "none";
-    document.getElementById("today-content").style.display = "block";
-    document.getElementById("today-content").innerHTML = renderDataHTML(TODAY_DATA, "TODAY'S BRIEF");
-    btn.disabled = false; btn.textContent = "↺ 再表示する";
-    activePair = "USD/JPY";
-    updatePairDisplay(TODAY_DATA);
-  }, 900);
-}
-
-function renderDataHTML(data, label) {
-  const rate = data.rates[activePair] || data.rates["USD/JPY"];
-  const changeColor = (rate.change||"").startsWith("+") ? "#4ecdc4" : "#ff6b6b";
-  const changeArrow = (rate.change||"").startsWith("+") ? "▲" : "▼";
-
-  const pairBtns = PAIRS.map(p =>
-    `<button class="pair-btn${p===activePair?" active":""}" onclick="selectPair('${p}',this)">${p}</button>`
-  ).join("");
-
-  const newsHTML = data.news.map(item => {
-    const cat = CATEGORIES[item.category] || {};
-    const ic = impactColor(item.impact);
-    return `<div class="news-item" style="border-left:3px solid ${ic}">
-      <div class="news-header">
-        <div class="news-meta">
-          <span class="news-cat">${cat.icon||""} ${cat.label||""}</span>
-          <span class="impact-badge" style="background:${ic}22;color:${ic};border:1px solid ${ic}44">影響${item.impact}</span>
-        </div>
-        <span class="news-dir" style="color:${dirColor(item.direction)}">${arrow(item.direction)} ${item.direction}</span>
-      </div>
-      <div class="news-title">${item.title}</div>
-      <div class="news-detail">${item.detail}</div>
-      ${item.source?`<a class="news-source" href="${item.source.url}" target="_blank">🔗 ${item.source.name}</a>`:""}
-    </div>`;
-  }).join("");
-
-  return `
-    <div class="summary-card">
-      <div class="card-label">${label}</div>
-      <div class="summary-title">${data.summary}</div>
-      <div class="tags">
-        <span class="tag-dir" style="color:${dirColor(data.direction)}">${arrow(data.direction)} ${data.direction}</span>
-        <span class="tag-conf">確度: ${data.confidence}</span>
-      </div>
-    </div>
-    <div style="margin-bottom:12px">
-      <div class="pair-tabs" id="pair-tabs-${label.replace(/\s/g,'')}">${pairBtns}</div>
-      <div class="rate-card" id="rate-display">
-        <div class="rate-row">
-          <div><div class="rate-label">Bid / Ask</div>
-            <div class="rate-value">${rate.bid} <span class="rate-ask">/ ${rate.ask}</span></div></div>
-          <div style="text-align:right"><div class="rate-label">前日比</div>
-            <div class="rate-change" style="color:${changeColor}">${changeArrow} ${rate.change}</div></div>
-        </div>
-        <div class="rate-footer">
-          <span>日中レンジ: ${rate.range}</span>
-          <span style="color:${dirColor(rate.bias)}">${arrow(rate.bias)} ${rate.bias}</span>
-        </div>
-      </div>
-    </div>
-    <div style="margin-bottom:12px">
-      <div class="section-label">MARKET MOVERS</div>
-      ${newsHTML}
-    </div>
-    <div class="watch-card">
-      <div class="watch-label">⚠ TODAY'S WATCH</div>
-      <div class="watch-text">${data.watch}</div>
-    </div>`;
-}
-
-function selectPair(pair, btn) {
-  activePair = pair;
-  document.querySelectorAll(".pair-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  const data = currentData || TODAY_DATA;
-  const rate = data.rates[pair];
-  if (!rate) return;
-  const changeColor = (rate.change||"").startsWith("+") ? "#4ecdc4" : "#ff6b6b";
-  const changeArrow = (rate.change||"").startsWith("+") ? "▲" : "▼";
-  const rd = document.getElementById("rate-display");
-  if (rd) rd.innerHTML = `
-    <div class="rate-row">
-      <div><div class="rate-label">Bid / Ask</div>
-        <div class="rate-value">${rate.bid} <span class="rate-ask">/ ${rate.ask}</span></div></div>
-      <div style="text-align:right"><div class="rate-label">前日比</div>
-        <div class="rate-change" style="color:${changeColor}">${changeArrow} ${rate.change}</div></div>
-    </div>
-    <div class="rate-footer">
-      <span>日中レンジ: ${rate.range}</span>
-      <span style="color:${dirColor(rate.bias)}">${arrow(rate.bias)} ${rate.bias}</span>
-    </div>`;
-}
-function updatePairDisplay(data) { /* handled by renderDataHTML */ }
-</script>
-
-<!-- PWA Service Worker -->
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
