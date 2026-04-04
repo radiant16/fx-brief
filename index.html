@@ -97,6 +97,7 @@
     <button class="tab"    onclick="switchTab('us',this)">🇺🇸 米国株</button>
     <button class="tab"    onclick="switchTab('funds',this)">📊 投信</button>
   </div>
+  <div style="text-align:center;font-size:9px;color:#333;margin-bottom:8px;letter-spacing:1px">← スワイプで切替 →</div>
   <div id="panel-fx" class="panel on">
     <button class="fetch-btn" id="btn-fx" onclick="showPanel('fx')">▶ 今日の為替情報を取得</button>
     <div id="content-fx" style="display:none"></div>
@@ -161,12 +162,25 @@ function showPanel(id){
   btn.disabled=true;btn.textContent="⟳ 取得中...";
   setTimeout(()=>{content.innerHTML=renders[id]();content.style.display="block";empty.style.display="none";btn.disabled=false;btn.textContent="↺ 再表示"},700);
 }
+const tabIds=["fx","jp","us","funds"];
 function switchTab(id,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));
   document.getElementById("panel-"+id).classList.add("on");
-  el.classList.add("on");
+  document.querySelector(`.tab[onclick*="'${id}'"]`).classList.add("on");
 }
+function curTab(){return tabIds.find(id=>document.getElementById("panel-"+id).classList.contains("on"))||"fx"}
+let _tx=null;
+document.addEventListener("touchstart",e=>{_tx=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",e=>{
+  if(_tx===null)return;
+  const diff=_tx-e.changedTouches[0].clientX;
+  if(Math.abs(diff)<50){_tx=null;return;}
+  const cur=tabIds.indexOf(curTab());
+  if(diff>0&&cur<tabIds.length-1)switchTab(tabIds[cur+1],null);
+  if(diff<0&&cur>0)switchTab(tabIds[cur-1],null);
+  _tx=null;
+});
 function selPair(pair,btn){
   curPair=pair;
   document.querySelectorAll(".pair-btn").forEach(b=>b.classList.remove("on"));
