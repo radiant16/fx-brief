@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FX Brief">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>為替デイリーブリーフ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,255,180,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,180,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .container { max-width: 600px; margin: 0 auto; padding: 24px 16px 40px; position: relative; z-index: 1; }
+
+    /* Header */
+    .badge { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #00ffb4; box-shadow: 0 0 12px #00ffb4; animation: pulse 2s infinite; }
+    .badge-text { font-size: 11px; color: #00ffb4; letter-spacing: 3px; }
+    h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0 0 4px;
+      background: linear-gradient(135deg, #fff 60%, #00ffb4);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .date-text { font-size: 11px; color: #444; }
+    .copyright-header { font-size: 12px; color: #ffffff; margin-top: 6px; letter-spacing: 3px; font-weight: 600; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; margin: 20px 0; }
+    .tab-btn {
+      flex: 1; padding: 10px 4px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 3px; color: #555;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: rgba(0,255,180,0.12);
+      border-color: rgba(0,255,180,0.4);
+      color: #00ffb4;
+    }
+
+    /* Fetch button */
+    .fetch-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #00ffb4, #00cc90);
+      border: none; border-radius: 4px;
+      color: #000; font-family: 'Courier New', monospace;
+      font-size: 13px; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer; margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(0,255,180,0.3);
+      transition: all 0.3s;
+    }
+    .fetch-btn:disabled { background: #111; color: #444; box-shadow: none; cursor: not-allowed; }
+
+    /* Summary card */
+    .summary-card {
+      padding: 20px; background: rgba(0,255,180,0.05);
+      border: 1px solid rgba(0,255,180,0.2);
+      border-radius: 4px; margin-bottom: 12px;
+    }
+    .card-label { font-size: 11px; color: #00ffb4; letter-spacing: 2px; margin-bottom: 6px; }
+    .summary-title { font-size: 19px; font-weight: 700; margin-bottom: 12px; }
+    .tags { display: flex; gap: 10px; flex-wrap: wrap; }
+    .tag-dir {
+      padding: 4px 12px;
+      background: rgba(0,255,180,0.08);
+      border: 1px solid rgba(0,255,180,0.25);
+      border-radius: 2px; font-size: 13px; font-weight: 700;
+    }
+    .tag-conf {
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 2px; font-size: 12px; color: #666;
+    }
+
+    /* Pair tabs */
+    .pair-tabs { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .pair-btn {
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 2px; color: #555;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .pair-btn.active { background: rgba(0,255,180,0.15); border-color: rgba(0,255,180,0.5); color: #00ffb4; }
+
+    /* Rate card */
+    .rate-card {
+      padding: 16px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px; margin-bottom: 12px;
+    }
+    .rate-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .rate-label { font-size: 11px; color: #444; margin-bottom: 2px; }
+    .rate-value { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
+    .rate-ask { font-size: 14px; color: #444; }
+    .rate-change { font-size: 16px; font-weight: 700; }
+    .rate-footer { display: flex; justify-content: space-between; font-size: 11px; color: #444; }
+
+    /* News items */
+    .section-label { font-size: 11px; color: #444; letter-spacing: 2px; margin-bottom: 10px; }
+    .news-item {
+      padding: 14px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0 4px 4px 0; margin-bottom: 8px;
+    }
+    .news-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: flex-start; gap: 8px; }
+    .news-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .news-cat { font-size: 11px; }
+    .impact-badge { font-size: 10px; padding: 2px 6px; border-radius: 2px; }
+    .news-dir { font-size: 11px; white-space: nowrap; }
+    .news-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .news-detail { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 6px; }
+    .news-source { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #00ffb4; text-decoration: none; opacity: 0.7; }
+
+    /* Watch */
+    .watch-card {
+      padding: 14px; background: rgba(255,170,0,0.05);
+      border: 1px solid rgba(255,170,0,0.2);
+      border-radius: 4px; margin-bottom: 24px;
+    }
+    .watch-label { font-size: 11px; color: #ffaa00; letter-spacing: 2px; margin-bottom: 6px; }
+    .watch-text { font-size: 13px; line-height: 1.7; }
+
+    /* Sites */
+    .site-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-left: 3px solid #00ffb4;
+      border-radius: 0 4px 4px 0; margin-bottom: 8px;
+      text-decoration: none; cursor: pointer; transition: background 0.2s;
+    }
+    .site-item:hover, .site-item:active { background: rgba(0,255,180,0.05); }
+    .site-name { font-size: 14px; font-weight: 700; color: #e8e8f0; margin-bottom: 3px; }
+    .site-desc { font-size: 12px; color: #555; }
+    .site-arrow { font-size: 16px; color: #00ffb4; }
+
+    /* Back issues */
+    .back-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 4px; margin-bottom: 8px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .back-item:hover, .back-item:active { background: rgba(0,255,180,0.04); }
+    .back-date { font-size: 11px; color: #444; margin-bottom: 3px; }
+    .back-summary { font-size: 14px; font-weight: 700; }
+    .back-dir { font-size: 13px; font-weight: 700; }
+    .back-rate { font-size: 11px; color: #333; margin-top: 2px; }
+    .back-btn {
+      background: none; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px; color: #555;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      cursor: pointer; padding: 6px 12px; margin-bottom: 16px;
+    }
+
+    /* Footer */
+    .footer-note { text-align: center; font-size: 10px; color: #1e1e2e; padding-top: 8px; }
+    .footer-copy { text-align: center; font-size: 12px; color: #ffffff; padding-top: 6px; letter-spacing: 3px; font-weight: 600; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 60px 0; color: #2a2a3a; font-size: 13px; letter-spacing: 1px; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* iOS safe area */
+    @supports (padding-top: env(safe-area-inset-top)) {
+      .container { padding-top: max(24px, env(safe-area-inset-top)); }
+    }
+  </style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+
+  <!-- Header -->
+  <div style="margin-bottom:20px">
+    <div class="badge">
+      <div class="dot"></div>
+      <span class="badge-text">FX MARKET INTELLIGENCE</span>
+    </div>
+    <h1>為替デイリーブリーフ</h1>
+    <div class="date-text" id="header-date"></div>
+    <div class="copyright-header">© KATANO HIKARU</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('today')">📰 TODAY</button>
+    <button class="tab-btn" onclick="switchTab('sites')">🔗 ニュースサイト</button>
+    <button class="tab-btn" onclick="switchTab('back')">📁 バックナンバー</button>
+  </div>
+
+  <!-- TODAY TAB -->
+  <div id="tab-today">
+    <button class="fetch-btn" id="fetch-btn" onclick="fetchNews()">▶ 今日のニュースを取得</button>
+    <div id="today-content" style="display:none"></div>
+    <div class="empty" id="today-empty">ボタンを押して今日の市場情報を取得</div>
+  </div>
+
+  <!-- SITES TAB -->
+  <div id="tab-sites" style="display:none">
+    <div class="section-label">RECOMMENDED SOURCES</div>
+    <div id="sites-list"></div>
+  </div>
+
+  <!-- BACK TAB -->
+  <div id="tab-back" style="display:none">
+    <div id="back-list"></div>
+    <div id="back-detail" style="display:none"></div>
+  </div>
+
+  <div class="footer-note">※投資判断はご自身の責任で行ってください</div>
+  <div class="footer-copy">© KATANO HIKARU</div>
+</div>
+
+<script>
+const CATEGORIES = {
+  central_bank: { label: "中央銀行", icon: "🏦" },
+  economic:     { label: "経済指標", icon: "📊" },
+  geopolitical: { label: "地政学",  icon: "🌐" },
+  risk:         { label: "リスク",  icon: "⚡" },
+};
+const PAIRS = ["USD/JPY","EUR/JPY","GBP/JPY","AUD/JPY"];
+let activePair = "USD/JPY";
+let currentData = null;
+
+const NEWS_SITES = [
+  { name: "Bloomberg JP", url: "https://www.bloomberg.co.jp/markets/currencies", desc: "米国発マーケット速報" },
+  { name: "Reuters",      url: "https://jp.reuters.com/markets/currencies/",     desc: "グローバルニュース" },
+  { name: "WSJ Markets",  url: "https://www.wsj.com/market-data/currencies",     desc: "ウォール街情報" },
+  { name: "CNBC FX",      url: "https://www.cnbc.com/currencies/",               desc: "米国TV系速報" },
+  { name: "Investing.com",url: "https://jp.investing.com/currencies/",           desc: "レート・分析" },
+];
+
+const TODAY_DATA = {
+  date: "2026年4月4日（土）", dateKey: "2026-04-04", updatedAt: "午前9時時点",
+  summary: "中東リスクと原油高で円安継続",
+  direction: "円安", confidence: "中",
+  rates: {
+    "USD/JPY": { bid:"159.43", ask:"159.71", change:"-0.06", range:"159.43〜159.73", bias:"ドル高" },
+    "EUR/JPY": { bid:"183.94", ask:"183.95", change:"+0.27", range:"183.80〜184.10", bias:"横ばい" },
+    "GBP/JPY": { bid:"206.50", ask:"206.80", change:"+0.10", range:"206.20〜207.00", bias:"横ばい" },
+    "AUD/JPY": { bid:"100.20", ask:"100.50", change:"-0.15", range:"100.00〜100.80", bias:"豪ドル安" },
+  },
+  news: [
+    { category:"geopolitical", title:"イランが米軍戦闘機を撃墜、中東リスク再燃", impact:"高", direction:"円安要因", detail:"中東情勢の緊迫化で原油価格が急騰。エネルギー輸入国の日本には円売り圧力が強まっている。", source:{ name:"Reuters", url:"https://jp.reuters.com/markets/currencies/" } },
+    { category:"risk",         title:"原油価格が急騰、インフレ再燃を警戒",       impact:"高", direction:"円安要因", detail:"有事リスクの高まりと供給不安で原油が大幅上昇。日本の貿易赤字拡大懸念が円売りを誘発。",     source:{ name:"Bloomberg JP", url:"https://www.bloomberg.co.jp/markets/currencies" } },
+    { category:"economic",     title:"グッドフライデーで欧米市場は休場",         impact:"中", direction:"中立",     detail:"欧米勢が不在のため流動性が低下。薄商いの中で値動きが大きくなる可能性に注意。",             source:{ name:"Investing.com", url:"https://jp.investing.com/currencies/" } },
+    { category:"economic",     title:"米雇用統計、市場予想並みの結果",           impact:"中", direction:"円安要因", detail:"非農業部門雇用者数が概ね予想通りで、FRBの利下げ観測は後退。ドル買い継続の材料に。",         source:{ name:"WSJ Markets", url:"https://www.wsj.com/market-data/currencies" } },
+    { category:"central_bank", title:"日米金利差4.0%、ドル優位が続く",          impact:"高", direction:"円安要因", detail:"FRB政策金利3.75% vs 日銀0.75%。金利差4%が根本的なドル円の上昇圧力となっている。",         source:{ name:"CNBC FX", url:"https://www.cnbc.com/currencies/" } },
+    { category:"central_bank", title:"日銀、追加利上げ時期を慎重に見極め",      impact:"中", direction:"円高要因", detail:"植田総裁は賃金・物価の持続的上昇を確認してから判断する姿勢を維持。円高抑制材料。",         source:{ name:"Bloomberg JP", url:"https://www.bloomberg.co.jp/markets/currencies" } },
+  ],
+  watch: "欧米休場で薄商い、中東情勢の急変に要注意",
+};
+
+function generatePastData(daysAgo) {
+  const summaries = ["FRB利下げ観測でドル売り優勢","日銀利上げ期待で円が急伸","米雇用統計好結果でドル高","中東リスク後退でリスクオン","原油高で円売り圧力強まる","日米金利差縮小観測で円買い","トランプ関税懸念でリスクオフ"];
+  const dirs = ["円安","円高","方向感なし"];
+  const d = new Date("2026-04-04"); d.setDate(d.getDate() - daysAgo);
+  const base = 158 + (daysAgo % 3);
+  return {
+    dateKey: d.toISOString().slice(0,10),
+    date: d.toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",weekday:"short"}),
+    summary: summaries[daysAgo % summaries.length],
+    direction: dirs[daysAgo % 3], confidence: ["高","中","低"][daysAgo % 3],
+    rates: {
+      "USD/JPY": { bid:`${base}.${20+daysAgo}`, ask:`${base}.${48+daysAgo}`, change: daysAgo%2===0?`+0.${daysAgo*10}`:`-0.${daysAgo*8}`, range:`${base}.00〜${base+1}.00`, bias: daysAgo%2===0?"ドル高":"ドル安" },
+      "EUR/JPY": { bid:`${183+daysAgo%2}.20`, ask:`${183+daysAgo%2}.50`, change:`+0.${daysAgo*5}`, range:"183.00〜184.00", bias:"横ばい" },
+      "GBP/JPY": { bid:`${206+daysAgo%2}.00`, ask:`${206+daysAgo%2}.30`, change:`-0.${daysAgo*3}`, range:"205.50〜207.00", bias:"横ばい" },
+      "AUD/JPY": { bid:`${100+daysAgo%2}.10`, ask:`${100+daysAgo%2}.40`, change:`+0.${daysAgo*6}`, range:"99.80〜101.00", bias:"豪ドル高" },
+    },
+    news: TODAY_DATA.news.slice(0,3),
+    watch: "過去データ — 参考情報としてご覧ください",
+  };
+}
+const BACK_ISSUES = Array.from({length:6},(_,i)=>generatePastData(i+1));
+
+// Color helpers
+function dirColor(d="") {
+  if(d.includes("円安")||d.includes("ドル高")||d.includes("ユーロ高")||d.includes("ポンド高")||d.includes("豪ドル高")) return "#ff6b6b";
+  if(d.includes("円高")||d.includes("ドル安")||d.includes("ユーロ安")||d.includes("ポンド安")||d.includes("豪ドル安")) return "#4ecdc4";
+  return "#888";
+}
+function arrow(d="") {
+  if(d.includes("円安")||d.includes("ドル高")||d.includes("ユーロ高")||d.includes("ポンド高")||d.includes("豪ドル高")) return "↑";
+  if(d.includes("円高")||d.includes("ドル安")||d.includes("ユーロ安")||d.includes("ポンド安")||d.includes("豪ドル安")) return "↓";
+  return "→";
+}
+function impactColor(v) { return v==="高"?"#ff4444":v==="中"?"#ffaa00":"#44bb88"; }
+
+// Tab switching
+function switchTab(t) {
+  ["today","sites","back"].forEach(id => {
+    document.getElementById("tab-"+id).style.display = id===t?"block":"none";
+    document.querySelectorAll(".tab-btn")[["today","sites","back"].indexOf(id)].classList.toggle("active", id===t);
+  });
+}
+
+// Init
+document.getElementById("header-date").textContent = TODAY_DATA.date + " " + TODAY_DATA.updatedAt;
+
+// Render sites
+const sitesList = document.getElementById("sites-list");
+NEWS_SITES.forEach(s => {
+  sitesList.innerHTML += `<a class="site-item" href="${s.url}" target="_blank">
+    <div><div class="site-name">${s.name}</div><div class="site-desc">${s.desc}</div></div>
+    <span class="site-arrow">→</span>
+  </a>`;
+});
+
+// Render back issues list
+function renderBackList() {
+  const bl = document.getElementById("back-list");
+  bl.innerHTML = `<div class="section-label">BACK ISSUES — 過去7日分</div>`;
+  BACK_ISSUES.forEach((issue,i) => {
+    const div = document.createElement("div");
+    div.className = "back-item";
+    div.innerHTML = `
+      <div><div class="back-date">${issue.date}</div><div class="back-summary">${issue.summary}</div></div>
+      <div style="text-align:right">
+        <div class="back-dir" style="color:${dirColor(issue.direction)}">${arrow(issue.direction)} ${issue.direction}</div>
+        <div class="back-rate">USD/JPY ${issue.rates["USD/JPY"].bid}</div>
+      </div>`;
+    div.onclick = () => showBackDetail(issue);
+    bl.appendChild(div);
+  });
+}
+renderBackList();
+
+function showBackDetail(issue) {
+  document.getElementById("back-list").style.display = "none";
+  const bd = document.getElementById("back-detail");
+  bd.style.display = "block";
+  bd.innerHTML = `<button class="back-btn" onclick="closeBackDetail()">← 一覧に戻る</button>` + renderDataHTML(issue, issue.date);
+}
+function closeBackDetail() {
+  document.getElementById("back-detail").style.display = "none";
+  document.getElementById("back-list").style.display = "block";
+}
+
+// Fetch news (today)
+function fetchNews() {
+  const btn = document.getElementById("fetch-btn");
+  btn.disabled = true; btn.textContent = "⟳ 分析中...";
+  setTimeout(() => {
+    currentData = TODAY_DATA;
+    document.getElementById("today-empty").style.display = "none";
+    document.getElementById("today-content").style.display = "block";
+    document.getElementById("today-content").innerHTML = renderDataHTML(TODAY_DATA, "TODAY'S BRIEF");
+    btn.disabled = false; btn.textContent = "↺ 再表示する";
+    activePair = "USD/JPY";
+    updatePairDisplay(TODAY_DATA);
+  }, 900);
+}
+
+function renderDataHTML(data, label) {
+  const rate = data.rates[activePair] || data.rates["USD/JPY"];
+  const changeColor = (rate.change||"").startsWith("+") ? "#4ecdc4" : "#ff6b6b";
+  const changeArrow = (rate.change||"").startsWith("+") ? "▲" : "▼";
+
+  const pairBtns = PAIRS.map(p =>
+    `<button class="pair-btn${p===activePair?" active":""}" onclick="selectPair('${p}',this)">${p}</button>`
+  ).join("");
+
+  const newsHTML = data.news.map(item => {
+    const cat = CATEGORIES[item.category] || {};
+    const ic = impactColor(item.impact);
+    return `<div class="news-item" style="border-left:3px solid ${ic}">
+      <div class="news-header">
+        <div class="news-meta">
+          <span class="news-cat">${cat.icon||""} ${cat.label||""}</span>
+          <span class="impact-badge" style="background:${ic}22;color:${ic};border:1px solid ${ic}44">影響${item.impact}</span>
+        </div>
+        <span class="news-dir" style="color:${dirColor(item.direction)}">${arrow(item.direction)} ${item.direction}</span>
+      </div>
+      <div class="news-title">${item.title}</div>
+      <div class="news-detail">${item.detail}</div>
+      ${item.source?`<a class="news-source" href="${item.source.url}" target="_blank">🔗 ${item.source.name}</a>`:""}
+    </div>`;
+  }).join("");
+
+  return `
+    <div class="summary-card">
+      <div class="card-label">${label}</div>
+      <div class="summary-title">${data.summary}</div>
+      <div class="tags">
+        <span class="tag-dir" style="color:${dirColor(data.direction)}">${arrow(data.direction)} ${data.direction}</span>
+        <span class="tag-conf">確度: ${data.confidence}</span>
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="pair-tabs" id="pair-tabs-${label.replace(/\s/g,'')}">${pairBtns}</div>
+      <div class="rate-card" id="rate-display">
+        <div class="rate-row">
+          <div><div class="rate-label">Bid / Ask</div>
+            <div class="rate-value">${rate.bid} <span class="rate-ask">/ ${rate.ask}</span></div></div>
+          <div style="text-align:right"><div class="rate-label">前日比</div>
+            <div class="rate-change" style="color:${changeColor}">${changeArrow} ${rate.change}</div></div>
+        </div>
+        <div class="rate-footer">
+          <span>日中レンジ: ${rate.range}</span>
+          <span style="color:${dirColor(rate.bias)}">${arrow(rate.bias)} ${rate.bias}</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="section-label">MARKET MOVERS</div>
+      ${newsHTML}
+    </div>
+    <div class="watch-card">
+      <div class="watch-label">⚠ TODAY'S WATCH</div>
+      <div class="watch-text">${data.watch}</div>
+    </div>`;
+}
+
+function selectPair(pair, btn) {
+  activePair = pair;
+  document.querySelectorAll(".pair-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  const data = currentData || TODAY_DATA;
+  const rate = data.rates[pair];
+  if (!rate) return;
+  const changeColor = (rate.change||"").startsWith("+") ? "#4ecdc4" : "#ff6b6b";
+  const changeArrow = (rate.change||"").startsWith("+") ? "▲" : "▼";
+  const rd = document.getElementById("rate-display");
+  if (rd) rd.innerHTML = `
+    <div class="rate-row">
+      <div><div class="rate-label">Bid / Ask</div>
+        <div class="rate-value">${rate.bid} <span class="rate-ask">/ ${rate.ask}</span></div></div>
+      <div style="text-align:right"><div class="rate-label">前日比</div>
+        <div class="rate-change" style="color:${changeColor}">${changeArrow} ${rate.change}</div></div>
+    </div>
+    <div class="rate-footer">
+      <span>日中レンジ: ${rate.range}</span>
+      <span style="color:${dirColor(rate.bias)}">${arrow(rate.bias)} ${rate.bias}</span>
+    </div>`;
+}
+function updatePairDisplay(data) { /* handled by renderDataHTML */ }
+</script>
+
+<!-- PWA Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
