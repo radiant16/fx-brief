@@ -11,8 +11,9 @@
         .header { margin-bottom: 16px; }
         .title { font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #fff 60%, #00ffb4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
         .date { font-size: 10px; color: #444; margin-bottom: 8px; }
-        .geo-bar { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 4px; padding: 10px; margin-bottom: 12px; font-size: 9px; color: #555; }
-        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; }
+        .geo-bar { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 4px; padding: 10px; margin-bottom: 12px; font-size: 9px; color: #555; line-height: 1.6; }
+        .pizza-meter { background: rgba(255,170,0,0.1); border-left: 3px solid #ffaa00; padding: 8px; margin-top: 8px; font-size: 8px; color: #ffaa00; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; flex-wrap: wrap; }
         .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 9px; font-family: 'Courier New', monospace; }
         .tab-btn.active { background: #00ffb4; color: #000; }
         .tab-content { display: none; }
@@ -30,8 +31,7 @@
         .news-meta { font-size: 8px; color: #444; margin-bottom: 4px; }
         .news-desc { font-size: 9px; color: #888; line-height: 1.4; }
         .badge { display: inline-block; font-size: 7px; padding: 1px 4px; background: rgba(255,170,0,0.2); color: #ffaa00; border-radius: 2px; margin-right: 4px; }
-        .badge-high { background: rgba(255,107,107,0.2); color: #ff6b6b; }
-        .badge-pos { background: rgba(78,205,196,0.2); color: #4ecdc4; }
+        .backnumber { font-size: 9px; padding: 6px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 4px; }
         .footer { text-align: center; font-size: 10px; color: #1a1a2e; padding-top: 12px; }
     </style>
 </head>
@@ -47,10 +47,11 @@
 
     <div class="geo-bar">
         <div style="margin-bottom: 6px;">⚔ 米イラン空爆・停戦交渉継続中</div>
-        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #555;">
+        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #555; margin-bottom: 4px;">
             <span>😱 VIX 18.71</span>
             <span>🛢 WTI $94.4</span>
         </div>
+        <div class="pizza-meter">🍕 Pentagon Pizza Meter (PizzINT): 戦闘継続・停戦交渉中</div>
     </div>
 
     <div class="tabs">
@@ -59,6 +60,7 @@
         <button class="tab-btn" onclick="showTab('us')">🇺🇸 米国株</button>
         <button class="tab-btn" onclick="showTab('funds')">📊 投信</button>
         <button class="tab-btn" onclick="showTab('re')">🏠 不動産</button>
+        <button class="tab-btn" onclick="toggleBacknumbers()">📁 バックナンバー</button>
     </div>
 
     <!-- FX Tab -->
@@ -73,23 +75,10 @@
                 <span class="metric-label">EUR/JPY</span>
                 <span class="metric-value">188.1</span>
             </div>
-            <div class="metric">
-                <span class="metric-label">GBP/JPY</span>
-                <span class="metric-value">211.5</span>
-            </div>
         </div>
         <div class="section">
             <div class="section-title">📰 ニュース</div>
-            
-        <div class="news-item">
-            <div class="news-title">日銀4月27-28会合で利上げ見送り、6月以降にシグナル</div>
-            <div class="news-meta">
-                <span class="badge badge-high">高</span>
-                <span class="badge ">中立</span>
-                <span style="color: #444;">Reuters</span>
-            </div>
-            <div class="news-desc">中東情勢とエネルギー価格の動向を評価するため日銀は利上げを据え置く見通し</div>
-        </div>
+            <div style="font-size: 9px; color: #555;">ニュース自動分類データを表示</div>
         </div>
     </div>
 
@@ -99,43 +88,12 @@
             <div class="section-title">📈 国内株</div>
             <div class="metric">
                 <span class="metric-label">日経平均</span>
-                <span class="metric-value up">59716</span>
+                <span class="metric-value">59716</span>
             </div>
             <div class="metric">
                 <span class="metric-label">前日比</span>
-                <span class="metric-value up">+0.48%</span>
+                <span class="metric-value up">0.48%</span>
             </div>
-        </div>
-        <div class="section">
-            <div class="section-title">📰 ニュース</div>
-            
-        <div class="news-item">
-            <div class="news-title">Nvidia、時価総額5兆ドルを回復してApple超える</div>
-            <div class="news-meta">
-                <span class="badge badge-high">高</span>
-                <span class="badge badge-pos">ポジティブ</span>
-                <span style="color: #444;">CNBC</span>
-            </div>
-            <div class="news-desc">AI半導体需要の強さを受けNvidiaが単独で市場トップに</div>
-        </div>
-        <div class="news-item">
-            <div class="news-title">Intel決算上方修正、AI需要で業績好転</div>
-            <div class="news-meta">
-                <span class="badge ">中</span>
-                <span class="badge badge-pos">ポジティブ</span>
-                <span style="color: #444;">Bloomberg</span>
-            </div>
-            <div class="news-desc">Intelが2Q業績見通しを引き上げ。AI向けプロセッサ需要が想定以上に強い</div>
-        </div>
-        <div class="news-item">
-            <div class="news-title">WTI原油、ホルムズ海峡緊張でも$94台で高止まり</div>
-            <div class="news-meta">
-                <span class="badge ">中</span>
-                <span class="badge ">中立</span>
-                <span style="color: #444;">CNBC</span>
-            </div>
-            <div class="news-desc">イラン砲艦の発砲事件も和平交渉期待で上昇一服</div>
-        </div>
         </div>
     </div>
 
@@ -145,58 +103,59 @@
             <div class="section-title">📈 米国株</div>
             <div class="metric">
                 <span class="metric-label">S&P 500</span>
-                <span class="metric-value up">7165</span>
+                <span class="metric-value">7165</span>
             </div>
             <div class="metric">
                 <span class="metric-label">NASDAQ</span>
-                <span class="metric-value up">24836</span>
+                <span class="metric-value">24836</span>
             </div>
-        </div>
-        <div class="section">
-            <div class="section-title">📰 ニュース</div>
-            <div style="font-size: 10px; color: #555; padding: 8px;">ニュースはありません</div>
         </div>
     </div>
 
     <!-- Funds Tab -->
     <div id="funds" class="tab-content">
         <div class="section">
-            <div class="section-title">💼 投信</div>
-            <div style="font-size: 10px; color: #555; padding: 12px; text-align: center;">
-                最新基準価額は毎週月曜に更新予定
-            </div>
+            <div style="font-size: 10px; color: #555; padding: 12px;">最新基準価額は毎週月曜更新</div>
         </div>
     </div>
 
     <!-- Real Estate Tab -->
     <div id="re" class="tab-content">
         <div class="section">
-            <div class="section-title">🏠 不動産</div>
-            <div style="font-size: 10px; color: #555; padding: 12px; text-align: center;">
-                Q1 データは変更不要
+            <div style="font-size: 10px; color: #555; padding: 12px;">不動産情報</div>
+        </div>
+    </div>
+
+    <!-- Backnumbers -->
+    <div id="backnumbers" style="display: none; margin-top: 12px;">
+        <div class="section">
+            <div class="section-title">📁 過去7日のサマリー</div>
+            <div class="backnumber">
+                <strong>本日:</strong> 日経59716円 | USD/JPY 159.31
             </div>
         </div>
     </div>
 
     <div class="footer">
         <div>© KATANO HIKARU | マーケットデイリーブリーフ v4.2</div>
-        <div style="font-size: 9px; color: #333; margin-top: 8px;">Generated: 2026-04-26 23:17:47</div>
+        <div style="font-size: 9px; color: #333; margin-top: 8px;">Generated: 2026-04-26 23:24:37</div>
     </div>
 </div>
 
 <script>
 function showTab(tabName) {
-    // Hide all tabs
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
     
-    // Deactivate all buttons
     const buttons = document.querySelectorAll('.tab-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
-    
-    // Show selected tab and activate button
-    document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
+}
+
+function toggleBacknumbers() {
+    const bn = document.getElementById('backnumbers');
+    bn.style.display = bn.style.display === 'none' ? 'block' : 'none';
 }
 </script>
 </body>
