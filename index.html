@@ -3,70 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マーケットデイリーブリーフ</title>
+    <title>マーケットデイリーブリーフ v4.2</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{background:#0a0a0f;color:#e8e8f0;font-family:'Courier New',monospace;padding:20px;min-height:100vh}
-        .container{max-width:600px;margin:0 auto}
-        .header{margin-bottom:20px}
-        .title{font-size:24px;font-weight:900;color:#fff;margin-bottom:4px}
-        .date{font-size:12px;color:#666;margin-bottom:12px}
-        .section{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:12px;margin-bottom:12px}
-        .metric{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
-        .up{color:#4ecdc4}.down{color:#ff6b6b}
-        .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-        .tab-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#888;padding:6px 12px;border-radius:3px;cursor:pointer;font-size:10px}
-        .tab-btn.active{background:#00ffb4;color:#000}
-        .geo-bar{background:rgba(255,100,0,0.1);border-left:3px solid #ffaa00;padding:10px;margin-bottom:12px;font-size:11px;color:#ffaa00}
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
+        body { background:#0a0a0f; color:#e8e8f0; font-family:'Courier New',monospace; min-height:100vh; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) }
+        .grid { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(0,255,180,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,180,0.03) 1px,transparent 1px); background-size:40px 40px }
+        .wrap { max-width:600px; margin:0 auto; padding:20px 14px 48px; position:relative; z-index:1 }
+        h1 { font-size:22px; font-weight:900; letter-spacing:-1px; margin:0 0 2px; background:linear-gradient(135deg,#fff 60%,#00ffb4); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+        .meta { font-size:11px; color:#333; margin-bottom:20px }
+        .geo-bar { background:rgba(255,100,0,0.08); border:1px solid rgba(255,170,0,0.2); border-radius:4px; padding:10px; margin-bottom:12px; font-size:9px; color:#ffaa00; line-height:1.6 }
+        .tabs { display:flex; gap:4px; margin-bottom:12px; overflow-x:auto; flex-wrap:wrap }
+        .tab-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#888; padding:6px 12px; border-radius:3px; cursor:pointer; font-size:9px; font-family:'Courier New',monospace }
+        .tab-btn.active { background:#00ffb4; color:#000 }
+        .tab-content { display:none }
+        .tab-content.active { display:block }
+        .section { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07); border-radius:4px; padding:12px; margin-bottom:8px }
+        .section-title { font-size:10px; color:#00ffb4; letter-spacing:2px; margin-bottom:8px; font-weight:700 }
+        .metric { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:10px }
+        .metric:last-child { border-bottom:none }
+        .metric-label { color:#555 }
+        .metric-value { font-weight:700 }
+        .up { color:#4ecdc4 } .down { color:#ff6b6b }
+        .footer { text-align:center; font-size:10px; color:#1a1a2e; padding-top:12px }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div style="font-size:11px;color:#00ffb4;letter-spacing:2px;margin-bottom:4px">MARKET INTELLIGENCE</div>
-        <div class="title">マーケットデイリーブリーフ</div>
-        <div class="date">2026年04月27日（更新）</div>
-        <div style="color:#fff;font-weight:600;margin-top:8px">© KATANO HIKARU</div>
-    </div>
+<div class="grid"></div>
+<div class="wrap">
+    <div style="font-size:9px;color:#00ffb4;letter-spacing:3px;margin-bottom:4px">MARKET INTELLIGENCE</div>
+    <h1>マーケットデイリーブリーフ</h1>
+    <div class="meta">2026年04月27日（更新）</div>
+    <div style="color:#fff;letter-spacing:3px;font-weight:600;font-size:11px;margin-top:4px">© KATANO HIKARU</div>
+    <div style="font-size:9px;color:#333;letter-spacing:2px;margin-top:2px">v4.2</div>
 
     <div class="geo-bar">
-        ⚔ 米イラン空爆・停戦交渉継続中<br>
-        😱 VIX 18.71 | 🛢 WTI $94.4<br>
-        🍕 Pentagon Pizza Meter (PizzINT): 戦闘継続・停戦交渉中
+        <div style="margin-bottom:6px">⚔ 米イラン空爆・停戦交渉継続中</div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#ffaa00;margin-bottom:4px">
+            <span>😱 VIX 18.71</span>
+            <span>🛢 WTI $94.4</span>
+        </div>
+        <div style="background:rgba(255,170,0,0.1);border-left:3px solid #ffaa00;padding:8px;margin-top:8px">
+            🍕 Pentagon Pizza Meter (PizzINT): 戦闘継続・停戦交渉中
+        </div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active">📈 為替</button>
-        <button class="tab-btn">🇯🇵 国内株</button>
-        <button class="tab-btn">🇺🇸 米国株</button>
-        <button class="tab-btn">📊 投信</button>
+        <button class="tab-btn active" onclick="showTab('fx')">📰 為替</button>
+        <button class="tab-btn" onclick="showTab('jp')">🇯🇵 国内株</button>
+        <button class="tab-btn" onclick="showTab('us')">🇺🇸 米国株</button>
+        <button class="tab-btn" onclick="showTab('funds')">📊 投信</button>
+        <button class="tab-btn" onclick="showTab('re')">🏠 不動産</button>
     </div>
 
-    <div class="section">
-        <div style="font-size:11px;color:#00ffb4;letter-spacing:2px;margin-bottom:8px">💴 為替レート</div>
-        <div class="metric"><span>USD/JPY</span><span>159.31</span></div>
-        <div class="metric"><span>EUR/JPY</span><span>188.10</span></div>
-        <div class="metric"><span>GBP/JPY</span><span>211.50</span></div>
-        <div class="metric"><span>AUD/JPY</span><span>100.80</span></div>
+    <!-- FX Tab -->
+    <div id="fx" class="tab-content active">
+        <div class="section">
+            <div class="section-title">💴 為替レート</div>
+            <div class="metric"><span class="metric-label">USD/JPY</span><span class="metric-value">159.31</span></div>
+            <div class="metric"><span class="metric-label">EUR/JPY</span><span class="metric-value">188.10</span></div>
+            <div class="metric"><span class="metric-label">GBP/JPY</span><span class="metric-value">211.50</span></div>
+            <div class="metric"><span class="metric-label">AUD/JPY</span><span class="metric-value">100.80</span></div>
+        </div>
+        <div class="section">
+            <div class="section-title">📰 ニュース</div>
+            
+            <div style="background:rgba(255,255,255,0.01);border-left:3px solid #ffaa00;padding:8px;margin-bottom:6px;border-radius:2px">
+                <div style="font-size:10px;font-weight:700;margin-bottom:2px;color:#e8e8f0">日銀4月27-28会合で利上げ見送り、6月以降にシグナル</div>
+                <div style="font-size:8px;color:#444;margin-bottom:4px">FX | Reuters</div>
+                <div style="font-size:9px;color:#888;line-height:1.4"></div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.01);border-left:3px solid #ffaa00;padding:8px;margin-bottom:6px;border-radius:2px">
+                <div style="font-size:10px;font-weight:700;margin-bottom:2px;color:#e8e8f0">Intel決算上方修正、AI需要で業績好転</div>
+                <div style="font-size:8px;color:#444;margin-bottom:4px">JP | Bloomberg</div>
+                <div style="font-size:9px;color:#888;line-height:1.4"></div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.01);border-left:3px solid #ffaa00;padding:8px;margin-bottom:6px;border-radius:2px">
+                <div style="font-size:10px;font-weight:700;margin-bottom:2px;color:#e8e8f0">イラン外相がパキスタン入り、米との和平交渉再開へ</div>
+                <div style="font-size:8px;color:#444;margin-bottom:4px">GEO | Reuters</div>
+                <div style="font-size:9px;color:#888;line-height:1.4"></div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.01);border-left:3px solid #ffaa00;padding:8px;margin-bottom:6px;border-radius:2px">
+                <div style="font-size:10px;font-weight:700;margin-bottom:2px;color:#e8e8f0">WTI原油、ホルムズ海峡緊張でも$94台で高止まり</div>
+                <div style="font-size:8px;color:#444;margin-bottom:4px">COM | CNBC</div>
+                <div style="font-size:9px;color:#888;line-height:1.4"></div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.01);border-left:3px solid #ffaa00;padding:8px;margin-bottom:6px;border-radius:2px">
+                <div style="font-size:10px;font-weight:700;margin-bottom:2px;color:#e8e8f0">Nvidia、時価総額5兆ドルを回復してApple超える</div>
+                <div style="font-size:8px;color:#444;margin-bottom:4px">JP | CNBC</div>
+                <div style="font-size:9px;color:#888;line-height:1.4"></div>
+            </div>
+            
+        </div>
     </div>
 
-    <div class="section">
-        <div style="font-size:11px;color:#00ffb4;letter-spacing:2px;margin-bottom:8px">📈 国内株</div>
-        <div class="metric"><span>日経平均</span><span class="{'up' if nikkei_pct > 0 else 'down'}">59,716 (+0.48%)</span></div>
-        <div class="metric"><span>TOPIX</span><span class="{'up' if topix_pct > 0 else 'down'}">3,750 (+0.92%)</span></div>
+    <!-- JP Tab -->
+    <div id="jp" class="tab-content">
+        <div class="section">
+            <div class="section-title">📈 国内株</div>
+            <div class="metric"><span class="metric-label">日経平均</span><span class="metric-value">59,716</span></div>
+            <div class="metric"><span class="metric-label">前日比</span><span class="metric-value up">+0.48%</span></div>
+            <div class="metric"><span class="metric-label">TOPIX</span><span class="metric-value">3,750</span></div>
+            <div class="metric"><span class="metric-label">前日比</span><span class="metric-value up">+0.92%</span></div>
+        </div>
     </div>
 
-    <div class="section">
-        <div style="font-size:11px;color:#00ffb4;letter-spacing:2px;margin-bottom:8px">📈 米国株</div>
-        <div class="metric"><span>S&P500</span><span>7,165</span></div>
-        <div class="metric"><span>NASDAQ</span><span>24,836</span></div>
-        <div class="metric"><span>NYダウ</span><span>49,230</span></div>
+    <!-- US Tab -->
+    <div id="us" class="tab-content">
+        <div class="section">
+            <div class="section-title">📈 米国株</div>
+            <div class="metric"><span class="metric-label">S&P 500</span><span class="metric-value">7,165</span></div>
+            <div class="metric"><span class="metric-label">NASDAQ</span><span class="metric-value">24,836</span></div>
+            <div class="metric"><span class="metric-label">NYダウ</span><span class="metric-value">49,230</span></div>
+        </div>
     </div>
 
-    <div style="text-align:center;font-size:10px;color:#333;margin-top:20px">
-        © KATANO HIKARU | マーケットデイリーブリーフ<br>
-        Generated: 2026-04-27 02:28:23
+    <!-- Funds Tab -->
+    <div id="funds" class="tab-content">
+        <div class="section">
+            <div style="font-size:10px;color:#555;padding:12px">最新基準価額は毎週月曜更新</div>
+        </div>
+    </div>
+
+    <!-- Real Estate Tab -->
+    <div id="re" class="tab-content">
+        <div class="section">
+            <div style="font-size:10px;color:#555;padding:12px">不動産情報</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>© KATANO HIKARU | マーケットデイリーブリーフ v4.2</div>
+        <div style="font-size:9px;color:#333;margin-top:8px">Generated: 2026-04-27 02:32:31</div>
     </div>
 </div>
+
+<script>
+function showTab(tabName) {
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+}
+</script>
 </body>
 </html>
